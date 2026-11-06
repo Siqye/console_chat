@@ -13,6 +13,7 @@ namespace mychat {
 		WSADATA m_wsaData;
 
 		static const int DEFAULT_BUFLEN = 512;
+		static const int PORT = 27015;
 
 		int mi_Result;
 		int mi_reciveResult;

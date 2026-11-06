@@ -37,7 +37,7 @@ namespace mychat {
         sockaddr_in client_addr;
         client_addr.sin_family = AF_INET;
         inet_pton(AF_INET, server_ip.c_str(), &client_addr.sin_addr);
-        client_addr.sin_port = htons(27015);
+        client_addr.sin_port = htons(PORT);
     
 
         mi_Result = connect(m_connectionSocket.load(), (SOCKADDR*)&client_addr, sizeof(client_addr));
