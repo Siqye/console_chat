@@ -82,7 +82,7 @@ namespace mychat {
             std::getline(std::cin, input_message);
             if (input_message.empty()) continue;
 
-            m_cmdParser.parse(input_message);
+            if (m_cmdParser.parse(input_message)) continue;
 
             mi_result = send(m_clientSocket, input_message.c_str(), (int)input_message.length(), 0);
             if (mi_result == SOCKET_ERROR) {

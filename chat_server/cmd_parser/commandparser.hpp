@@ -13,6 +13,6 @@ namespace mychat {
 	public:
 		void register_command(std::string name, std::function<void(const std::vector<std::string>&)>);
 
-		void parse(const std::string& line);
+		bool parse(const std::string& line);
 	};
 }

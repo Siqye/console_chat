@@ -5,8 +5,8 @@ namespace mychat {
 		m_commands[name] = handler;
 	}
 
-	void CommandParser::parse(const std::string& line) {
-		if (line.empty()) return;
+	bool CommandParser::parse(const std::string& line) {
+		if (line.empty()) return false;
 
         std::stringstream ss(line);
         std::string command_name;
@@ -21,9 +21,13 @@ namespace mychat {
         auto it = m_commands.find(command_name);
         if (it != m_commands.end()) {
             it->second(args);
+            return true;
         }
         else {
             std::cout << "Unknown command: " << command_name << ". Enter /help for reference.\n";
+            return false;
         }
+
+        return false;
 	}
 }
