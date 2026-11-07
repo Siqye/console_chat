@@ -29,6 +29,7 @@ namespace mychat { // да
 		void poll();
 
 	private:
+		void closeConnection();
 		bool init();
 		void recive();
 	};

@@ -21,6 +21,15 @@ namespace mychat {
             exit(0);
         });
 
+        m_cmdParser.register_command("/clear", [](const std::vector<std::string>& args) {
+            std::system("cls");
+        });
+
+        m_cmdParser.register_command("/disconnect", [this](const std::vector<std::string>& args) {
+            this->closeConnection();
+            this->pollConnection();
+        });
+
         WSADATA wsaData;
         mi_result = WSAStartup(MAKEWORD(2, 2), &wsaData);
         if (mi_result != 0) {
@@ -50,7 +59,7 @@ namespace mychat {
 
         mi_result = listen(m_listenSocket, SOMAXCONN);
         if (mi_result == SOCKET_ERROR) {
-            std::cerr << "Ошибка прослушивания (listen): " << WSAGetLastError() << "\n";
+            std::cerr << "Listen error: " << WSAGetLastError() << "\n";
             closesocket(m_listenSocket);
             WSACleanup();
             return false;
@@ -109,5 +118,10 @@ namespace mychat {
                 std::cout << "\nData recieving error: " << WSAGetLastError() << "\n";
             }
         }
+    }
+
+    void Server::closeConnection() {
+        closesocket(m_clientSocket);
+        pollConnection();
     }
 } 

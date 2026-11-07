@@ -5,12 +5,14 @@
 #include <thread>
 #include <string>
 #include <atomic>
+#include "../cmd_parser/commandparser.hpp"
 
 namespace mychat {
 	class Client {
 	private:
 		std::atomic<SOCKET> m_connectionSocket;
 		WSADATA m_wsaData;
+		CommandParser m_cmdParser;
 
 		static const int DEFAULT_BUFLEN = 512;
 		static const int PORT = 27015;

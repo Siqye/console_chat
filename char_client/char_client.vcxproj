@@ -152,10 +152,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="client\client.cpp" />
+    <ClCompile Include="cmd_parser\commandparser.cpp" />
     <ClCompile Include="mainclient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\client.hpp" />
+    <ClInclude Include="cmd_parser\commandparser.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
