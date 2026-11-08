@@ -4,9 +4,7 @@ using namespace mychat;
 
 int main() {
     Client client;
-    client.plugin(); // connect
-
-    client.poll();
+    client.plugin();
     
     return 0;
 }

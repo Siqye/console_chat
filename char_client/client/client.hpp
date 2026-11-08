@@ -10,7 +10,7 @@
 namespace mychat {
 	class Client {
 	private:
-		std::atomic<SOCKET> m_connectionSocket;
+		SOCKET m_connectionSocket;
 		WSADATA m_wsaData;
 		CommandParser m_cmdParser;
 
@@ -19,8 +19,9 @@ namespace mychat {
 
 		int mi_Result;
 		int mi_reciveResult;
-
-		bool m_close;
+		// status
+		bool m_close; 
+		bool m_isConnected;
 	public:
 		Client();
 		~Client();
@@ -29,6 +30,10 @@ namespace mychat {
 		void poll();
 
 	private:
+		void disconnect();
+		void reconnect();
+		void sendDisconnectWarning();
+
 		bool init();
 		void recive();
 	};

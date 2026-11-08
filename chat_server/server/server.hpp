@@ -16,6 +16,8 @@ namespace mychat { // да
 		WSADATA m_wsaData;
 
 		bool m_close;
+		bool m_isConnected;
+
 		int mi_result;
 		int mi_reciveResult;
 
@@ -29,7 +31,8 @@ namespace mychat { // да
 		void poll();
 
 	private:
-		void closeConnection();
+		void sendDisconnectWarning();
+		void disconnect();
 		bool init();
 		void recive();
 	};

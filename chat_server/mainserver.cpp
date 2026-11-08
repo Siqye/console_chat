@@ -4,13 +4,9 @@
 using namespace mychat;
 
 int main() {
-	CommandParser cp;
-
-
+	
 	Server server;
 	server.pollConnection();
-
-	server.poll();
 
 	return 0;
 }
