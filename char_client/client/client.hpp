@@ -31,9 +31,10 @@ namespace mychat {
 
 	private:
 		void disconnect();
+
 		void sendDisconnectWarning();
 
-		bool init();
+		bool init(); 
 		void recive();
 	};
 }

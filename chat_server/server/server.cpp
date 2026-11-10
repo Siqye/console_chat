@@ -28,6 +28,7 @@ namespace mychat {
 		});
 
 		m_cmdParser.register_command("/disconnect", [this](const std::vector<std::string>& args) {
+            void sendDisconnectWarning();
 			disconnect();
 		});
 
@@ -137,12 +138,10 @@ namespace mychat {
 #               ifdef DEVTEST
                 std::cout << "\nClient disconnected.\n";
 #               endif
-                disconnect();
                 return;
             }
             else {
                 std::cout << "\nData recieving error: " << WSAGetLastError() << "\n";
-                disconnect();
                 return;
             }
         }
@@ -150,7 +149,8 @@ namespace mychat {
 
     void Server::disconnect() {
         m_isConnected = false;
-        sendDisconnectWarning();
+        closesocket(m_clientSocket);
+        closesocket(m_listenSocket);
         reopenListen();
     }
 

@@ -26,7 +26,7 @@ namespace mychat {
         });
 
         m_cmdParser.register_command("/disconnect", [this](const std::vector<std::string>& args) {
-            m_isConnected = false;
+            sendDisconnectWarning();
             disconnect();
         });
 
@@ -145,7 +145,7 @@ namespace mychat {
     }
 
     void Client::disconnect() {
-        sendDisconnectWarning();
+        m_isConnected = false;
         closesocket(m_connectionSocket);
         m_connectionSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         plugin();
