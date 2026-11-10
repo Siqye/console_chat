@@ -4,9 +4,11 @@
 #include <ws2tcpip.h>
 #include <thread>
 #include <string>
+#include <mutex>
+#include <atomic>
 #include "../cmd_parser/commandparser.hpp"
 
-namespace mychat { // да
+namespace mychat {
 	class Server {
 	private:
 		CommandParser m_cmdParser;
@@ -15,8 +17,10 @@ namespace mychat { // да
 		SOCKET m_listenSocket;
 		WSADATA m_wsaData;
 
+		std::mutex m_mutex;
+
 		bool m_close;
-		bool m_isConnected;
+		std::atomic<bool> m_isConnected;
 
 		int mi_result;
 		int mi_reciveResult;
@@ -31,6 +35,7 @@ namespace mychat { // да
 		void poll();
 
 	private:
+		void reopenListen();
 		void sendDisconnectWarning();
 		void disconnect();
 		bool init();

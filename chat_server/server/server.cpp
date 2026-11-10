@@ -3,7 +3,7 @@
 namespace mychat {
 	Server::Server() {
 		m_close = !init();
-        m_isConnected = false;
+        m_isConnected.store(false);
 	}
 
 	Server::~Server() {
@@ -70,35 +70,6 @@ namespace mychat {
 	}
 
 	void Server::pollConnection() {
-		if (m_listenSocket == INVALID_SOCKET) {
-			sockaddr_in server_addr;
-			server_addr.sin_family = AF_INET;
-			server_addr.sin_addr.s_addr = INADDR_ANY;
-			server_addr.sin_port = htons(PORT);
-
-			m_listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-			if (m_listenSocket == INVALID_SOCKET) {
-				std::cerr << "Socket error: " << WSAGetLastError() << "\n";
-				return;
-			}
-
-			mi_result = bind(m_listenSocket, (SOCKADDR*)&server_addr, sizeof(server_addr));
-			if (mi_result == SOCKET_ERROR) {
-				std::cerr << "Bind error: " << WSAGetLastError() << "\n";
-				closesocket(m_listenSocket);
-				m_listenSocket = INVALID_SOCKET;
-				return;
-			}
-
-			mi_result = listen(m_listenSocket, SOMAXCONN);
-			if (mi_result == SOCKET_ERROR) {
-				std::cerr << "Listen error: " << WSAGetLastError() << "\n";
-				closesocket(m_listenSocket);
-				m_listenSocket = INVALID_SOCKET;
-				return;
-			}
-			std::cout << "Listen socket reopened. waiting for client...\n";
-		}
 
 		m_clientSocket = accept(m_listenSocket, NULL, NULL);
 		if (m_clientSocket == INVALID_SOCKET) {
@@ -106,8 +77,11 @@ namespace mychat {
 			return;
 		}
 
-		m_isConnected = true;
-		std::cout << "Client succesfuly connected!\n";
+		m_isConnected.store(true);
+		
+        std::cout << "Client succesfuly connected!\n";
+
+        closesocket(m_listenSocket);
 
         poll();
 	}
@@ -117,26 +91,7 @@ namespace mychat {
         reciveT.detach();
 
         std::string input_message;
-        while (!m_close) {
-            // wait
-            if (!m_isConnected) {
-                std::cout << "\n[Waitin for client connection]\n";
-                std::cout << "Your message: ";
-                std::getline(std::cin, input_message);
-
-                if (input_message.empty()) continue;
-
-                if (input_message == "/exit") {
-                    m_close = true;
-                    break;
-                }
-
-                if (m_cmdParser.parse(input_message)) continue;
-
-                std::cout << "Server waiting connection. avaible commands /help for reference\n";
-                continue;
-            }
-
+        while (m_isConnected) {
             std::cout << "Your message: ";
             std::getline(std::cin, input_message);
             if (input_message.empty()) continue;
@@ -167,26 +122,21 @@ namespace mychat {
             }
             else if (mi_reciveResult == 0) {
                 std::cout << "\nClient disconnected.\n";
-                m_isConnected = false;
-                disconnect();
                 return;
             }
             else {
                 std::cout << "\nData recieving error: " << WSAGetLastError() << "\n";
-                m_isConnected = false;
-                disconnect();
                 return;
             }
         }
     }
 
     void Server::disconnect() {
+        m_isConnected = false;
         sendDisconnectWarning();
         closesocket(m_clientSocket);
-        closesocket(m_listenSocket);
-        m_isConnected = false;
-        std::cout << "\nClient disconnected. listen socket opened\n";
-        pollConnection();
+        
+        reopenListen();
     }
 
     void Server::sendDisconnectWarning() {
@@ -197,5 +147,36 @@ namespace mychat {
                 std::cout << "\nSending disconnect message to client...\n";
             }
         }
+    }
+
+    void Server::reopenListen() {
+        m_listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (m_listenSocket == INVALID_SOCKET) {
+            std::cerr << "Socket error: " << WSAGetLastError() << "\n";
+            WSACleanup();
+        }
+
+        sockaddr_in server_addr;
+        server_addr.sin_family = AF_INET;
+        server_addr.sin_addr.s_addr = INADDR_ANY;
+        server_addr.sin_port = htons(PORT);
+
+        mi_result = bind(m_listenSocket, (SOCKADDR*)&server_addr, sizeof(server_addr));
+        if (mi_result == SOCKET_ERROR) {
+            std::cerr << "Bind error: " << WSAGetLastError() << "\n";
+            closesocket(m_listenSocket);
+            WSACleanup();
+        }
+
+        mi_result = listen(m_listenSocket, SOMAXCONN);
+        if (mi_result == SOCKET_ERROR) {
+            std::cerr << "Listen error: " << WSAGetLastError() << "\n";
+            closesocket(m_listenSocket);
+            WSACleanup();
+        }
+
+        std::cout << "Listen socket reopened. waiting for new connection...\n";
+
+        pollConnection();
     }
 } 

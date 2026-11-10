@@ -4,7 +4,7 @@
 using namespace mychat;
 
 int main() {
-	
+
 	Server server;
 	server.pollConnection();
 

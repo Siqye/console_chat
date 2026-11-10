@@ -137,9 +137,9 @@ namespace mychat {
     }
 
     void Client::disconnect() {
+        m_isConnected = false;
         sendDisconnectWarning();
         closesocket(m_connectionSocket);
-        m_isConnected = false;
         std::cout << "\nServer close connection.\n";
         reconnect();
         plugin();
