@@ -26,18 +26,23 @@ namespace mychat {
         });
 
         m_cmdParser.register_command("/disconnect", [this](const std::vector<std::string>& args) {
+            m_isConnected = false;
             disconnect();
         });
 
         mi_Result = WSAStartup(MAKEWORD(2, 2), &m_wsaData);
         if (mi_Result != 0) {
-            std::cerr << "WSAStartup error: " << mi_Result << "\n";
+#           ifdef DEVTEST
+            std::cout << "WSAStartup error: " << mi_Result << "\n";
+#           endif
             return false;
         }
 
         m_connectionSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (m_connectionSocket == INVALID_SOCKET) {
-            std::cerr << "Socket creation error: " << WSAGetLastError() << "\n";
+#           ifdef DEVTEST
+            std::cout << "Socket creation error: " << WSAGetLastError() << "\n";
+#           endif
             WSACleanup();
             return false;
         }
@@ -60,7 +65,9 @@ namespace mychat {
 
         mi_Result = connect(m_connectionSocket, (SOCKADDR*)&client_addr, sizeof(client_addr));
         if (mi_Result == SOCKET_ERROR) {
-            std::cerr << "Connection error: " << WSAGetLastError() << "\n";
+#           ifdef DEVTEST
+            std::cout << "Connection error: " << WSAGetLastError() << "\n";
+#           endif
             closesocket(m_connectionSocket);
             m_isConnected = false;
             return;
@@ -81,7 +88,6 @@ namespace mychat {
         while (!m_close) {
 
             if (!m_isConnected) {
-                std::cout << "\n[Server close conneciton]\n";
                 if (input_message.empty()) continue;
 
                 if (input_message == "/exit") {
@@ -89,7 +95,7 @@ namespace mychat {
                     break;
                 }
 
-                reconnect();
+                disconnect();
                 continue;
             }
 
@@ -97,14 +103,14 @@ namespace mychat {
             std::getline(std::cin, input_message);
             if (input_message.empty()) continue;
 
-            if (input_message[0] == '/') {
-                m_cmdParser.parse(input_message);
-                continue;
-            }
+            if (m_cmdParser.parse(input_message)) continue;
+            
 
             mi_Result = send(m_connectionSocket, input_message.c_str(), (int)input_message.length(), NULL);
             if (mi_Result == SOCKET_ERROR) {
-                std::cerr << "Send error: " << WSAGetLastError() << "\n";
+#               ifdef DEVTEST
+                std::cout << "Send error: " << WSAGetLastError() << "\n";
+#               endif
             }
         }
     }
@@ -116,7 +122,8 @@ namespace mychat {
             mi_reciveResult = recv(m_connectionSocket, recvbuf, DEFAULT_BUFLEN, 0);
             if (mi_reciveResult > 0) {
                 std::string message(recvbuf, mi_reciveResult);
-                if (message == "[DISCONNECT]") {
+                if (message.c_str() == "[DISCONNECT]") {
+                    m_isConnected = false;
                     disconnect();
                     return;
                 }
@@ -124,12 +131,13 @@ namespace mychat {
                 std::cout.flush();
             }
             else if (mi_reciveResult == 0) {
-                std::cout << "\nServer close connection.\n";
                 disconnect();
                 return;
             }
             else {
-                std::cerr << "\nData recieving error: " << WSAGetLastError() << "\n";
+#               ifdef DEVTEST
+                std::cout << "\nData recieving error: " << WSAGetLastError() << "\n";
+#               endif
                 disconnect();
                 return;
             }
@@ -137,11 +145,9 @@ namespace mychat {
     }
 
     void Client::disconnect() {
-        m_isConnected = false;
         sendDisconnectWarning();
         closesocket(m_connectionSocket);
-        std::cout << "\nServer close connection.\n";
-        reconnect();
+        m_connectionSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         plugin();
     }
 
@@ -153,18 +159,5 @@ namespace mychat {
                 std::cout << "\nSending disconnect message to server...\n";
             }
         }
-    }
-
-    void Client::reconnect() {
-        closesocket(m_connectionSocket);
-
-        m_connectionSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        if (m_connectionSocket == INVALID_SOCKET) {
-            std::cerr << "Socket creation error: " << WSAGetLastError() << "\n";
-            m_isConnected = false;
-            return;
-        }
-
-        plugin();
     }
 }

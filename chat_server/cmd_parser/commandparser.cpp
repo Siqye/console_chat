@@ -23,10 +23,6 @@ namespace mychat {
             it->second(args);
             return true;
         }
-        else {
-            std::cout << "Unknown command: " << command_name << ". Enter /help for reference.\n";
-            return false;
-        }
 
         return false;
 	}

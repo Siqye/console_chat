@@ -31,7 +31,6 @@ namespace mychat {
 
 	private:
 		void disconnect();
-		void reconnect();
 		void sendDisconnectWarning();
 
 		bool init();

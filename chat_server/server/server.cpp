@@ -1,5 +1,6 @@
 #include "server.hpp"
 
+
 namespace mychat {
 	Server::Server() {
 		m_close = !init();
@@ -33,13 +34,17 @@ namespace mychat {
         WSADATA wsaData;
         mi_result = WSAStartup(MAKEWORD(2, 2), &wsaData);
         if (mi_result != 0) {
-            std::cerr << "WSAStartup error: " << mi_result << "\n";
+#           ifdef DEVTEST
+            std::cout << "WSAStartup error: " << mi_result << "\n";
+#           endif
             return false;
         }
 
         m_listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (m_listenSocket == INVALID_SOCKET) {
-            std::cerr << "Socket error: " << WSAGetLastError() << "\n";
+#           ifdef DEVTEST
+            std::cout << "Socket error: " << WSAGetLastError() << "\n";
+#           endif
             WSACleanup();
             return false;
         }
@@ -51,7 +56,9 @@ namespace mychat {
 
         mi_result = bind(m_listenSocket, (SOCKADDR*)&server_addr, sizeof(server_addr));
         if (mi_result == SOCKET_ERROR) {
-            std::cerr << "Bind error: " << WSAGetLastError() << "\n";
+#           ifdef DEVTEST
+            std::cout << "Bind error: " << WSAGetLastError() << "\n";
+#           endif
             closesocket(m_listenSocket);
             WSACleanup();
             return false;
@@ -59,7 +66,9 @@ namespace mychat {
 
         mi_result = listen(m_listenSocket, SOMAXCONN);
         if (mi_result == SOCKET_ERROR) {
-            std::cerr << "Listen error: " << WSAGetLastError() << "\n";
+#           ifdef DEVTEST
+            std::cout << "Listen error: " << WSAGetLastError() << "\n";
+#           endif
             closesocket(m_listenSocket);
             WSACleanup();
             return false;
@@ -73,8 +82,10 @@ namespace mychat {
 
 		m_clientSocket = accept(m_listenSocket, NULL, NULL);
 		if (m_clientSocket == INVALID_SOCKET) {
-			std::cerr << "Error (accept): " << WSAGetLastError() << "\n";
-			return;
+#           ifdef DEVTEST
+			std::cout << "Error (accept): " << WSAGetLastError() << "\n";
+#           endif
+            return;
 		}
 
 		m_isConnected.store(true);
@@ -100,7 +111,9 @@ namespace mychat {
 
             mi_result = send(m_clientSocket, input_message.c_str(), (int)input_message.length(), 0);
             if (mi_result == SOCKET_ERROR) {
-                std::cerr << "Send error: " << WSAGetLastError() << "\n";
+#               ifdef DEVTEST
+                std::cout << "Send error: " << WSAGetLastError() << "\n";
+#               endif
             }
         }
     }
@@ -121,11 +134,15 @@ namespace mychat {
                 std::cout.flush();
             }
             else if (mi_reciveResult == 0) {
+#               ifdef DEVTEST
                 std::cout << "\nClient disconnected.\n";
+#               endif
+                disconnect();
                 return;
             }
             else {
                 std::cout << "\nData recieving error: " << WSAGetLastError() << "\n";
+                disconnect();
                 return;
             }
         }
@@ -134,8 +151,6 @@ namespace mychat {
     void Server::disconnect() {
         m_isConnected = false;
         sendDisconnectWarning();
-        closesocket(m_clientSocket);
-        
         reopenListen();
     }
 
@@ -152,8 +167,9 @@ namespace mychat {
     void Server::reopenListen() {
         m_listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (m_listenSocket == INVALID_SOCKET) {
-            std::cerr << "Socket error: " << WSAGetLastError() << "\n";
-            WSACleanup();
+#           ifdef DEVTEST
+            std::cout << "Socket error: " << WSAGetLastError() << "\n";
+#           endif
         }
 
         sockaddr_in server_addr;
@@ -163,16 +179,16 @@ namespace mychat {
 
         mi_result = bind(m_listenSocket, (SOCKADDR*)&server_addr, sizeof(server_addr));
         if (mi_result == SOCKET_ERROR) {
-            std::cerr << "Bind error: " << WSAGetLastError() << "\n";
-            closesocket(m_listenSocket);
-            WSACleanup();
+#           ifdef DEVTEST
+            std::cout << "Bind error: " << WSAGetLastError() << "\n";
+#           endif
         }
 
         mi_result = listen(m_listenSocket, SOMAXCONN);
         if (mi_result == SOCKET_ERROR) {
-            std::cerr << "Listen error: " << WSAGetLastError() << "\n";
-            closesocket(m_listenSocket);
-            WSACleanup();
+#           ifdef DEVTEST
+            std::cout << "Listen error: " << WSAGetLastError() << "\n";
+#           endif
         }
 
         std::cout << "Listen socket reopened. waiting for new connection...\n";
